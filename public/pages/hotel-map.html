@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>StayEase - Popular Place to Hotel Route</title>
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}body{margin:0;background:#f3f6fa;color:#172033}header{background:#173b67;color:#fff;padding:18px 6%;display:flex;justify-content:space-between;align-items:center;gap:15px}header a{color:white;text-decoration:none}.container{max-width:1050px;margin:28px auto;padding:0 16px}.card{background:#fff;padding:24px;border-radius:14px;box-shadow:0 4px 14px #dce3eb;margin-bottom:20px}.hotel-title{color:#176b47}.hotel-info{line-height:1.8}.row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}label{font-weight:600;display:block;margin-bottom:8px}select,input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px;background:#fff}button{border:0;border-radius:8px;padding:13px 16px;background:#176b47;color:white;font-weight:700;cursor:pointer;margin-top:12px}button:hover{background:#105638}.secondary{background:#173b67}.notice{background:#eaf4ff;padding:14px;border-radius:9px;margin-top:14px;color:#17416b}.map-frame{width:100%;height:390px;border:0;border-radius:10px;margin-top:14px}.small{color:#64748b;font-size:14px}.route-actions{display:flex;gap:10px;flex-wrap:wrap}.route-actions button{flex:1;min-width:200px}@media(max-width:650px){header{flex-direction:column}.row{grid-template-columns:1fr}.map-frame{height:300px}.card{padding:17px}}
+</style></head><body>
+<header><h2>StayEase 🏨</h2><a href="/">← Back to Home</a></header>
+<main class="container">
+<section class="card"><h2>📍 Your booked hotel</h2><h3 id="hotelName" class="hotel-title">Loading hotel...</h3><p class="hotel-info"><b>City:</b> <span id="hotelCity"></span><br><b>Area:</b> <span id="hotelArea"></span><br><b>Destination:</b> <span id="hotelDestination"></span></p><p class="small">Route is planned from the selected popular place to your hotel.</p></section>
+<section class="card"><h2>🗺️ Popular Place → Hotel Distance & Route</h2><div class="row"><div><label for="placeSelect">Choose starting point / popular place</label><select id="placeSelect"></select></div><div><label for="travelMode">Travel mode</label><select id="travelMode"><option value="driving">Driving</option><option value="walking">Walking</option><option value="transit">Public transport</option><option value="bicycling">Cycling</option></select></div></div><div class="notice" id="routeInfo">Select a starting place to view the route.</div><div class="route-actions"><button onclick="openRoute()">📏 View Distance & Directions in Google Maps</button><button class="secondary" onclick="showHotelMap()">📍 Show Hotel on Map</button></div><p class="small">Google Maps will show the road distance, route and estimated travel time. This page does not estimate road distance itself.</p><div id="mapArea"></div></section>
+<section class="card"><h2>Nearby services</h2><div class="route-actions"><button class="secondary" onclick="nearby('restaurants')">🍽️ Restaurants nearby</button><button class="secondary" onclick="nearby('hospitals')">🏥 Hospitals nearby</button><button class="secondary" onclick="nearby('shopping malls')">🛍️ Shopping nearby</button></div></section>
+</main>
+<script>
+const booking = (()=>{try{return JSON.parse(localStorage.getItem('latestBooking')||'{}')}catch(e){return {}}})();
+const hotelName=booking.hotelName||localStorage.getItem('hotelName')||'StayEase Hotel';
+const city=booking.location||booking.hotelLocation||localStorage.getItem('hotelLocation')||'Hyderabad';
+const area=booking.subLocation||booking.hotelSubLocation||localStorage.getItem('hotelSubLocation')||'';
+const hotelDestination=[hotelName,area,city].filter(Boolean).join(', ');
+document.getElementById('hotelName').textContent=hotelName;
+document.getElementById('hotelCity').textContent=city;
+document.getElementById('hotelArea').textContent=area||'Not specified';
+document.getElementById('hotelDestination').textContent=hotelDestination;
+const popular={
+ Hyderabad:['Charminar, Hyderabad','Golconda Fort, Hyderabad','Hussain Sagar, Hyderabad','Ramoji Film City, Hyderabad','Hyderabad Railway Station','Secunderabad Railway Station','Rajiv Gandhi International Airport, Hyderabad'],
+ Bangalore:['Bangalore Palace, Bengaluru','Lalbagh Botanical Garden, Bengaluru','Cubbon Park, Bengaluru','Bengaluru City Railway Station','Kempegowda International Airport, Bengaluru'],
+ Goa:['Baga Beach, Goa','Calangute Beach, Goa','Fort Aguada, Goa','Madgaon Railway Station, Goa','Goa International Airport'],
+ Mumbai:['Gateway of India, Mumbai','Marine Drive, Mumbai','Juhu Beach, Mumbai','Mumbai Central Railway Station','Chhatrapati Shivaji Maharaj International Airport, Mumbai'],
+ Delhi:['India Gate, New Delhi','Red Fort, Delhi','Qutub Minar, Delhi','New Delhi Railway Station','Indira Gandhi International Airport, Delhi']
+};
+const cityKey=Object.keys(popular).find(k=>city.toLowerCase().includes(k.toLowerCase()))||'Hyderabad';
+const select=document.getElementById('placeSelect');
+popular[cityKey].forEach(place=>{const option=document.createElement('option');option.value=place;option.textContent=place;select.appendChild(option)});
+select.addEventListener('change',()=>{document.getElementById('routeInfo').textContent=`Route: ${select.value} → ${hotelDestination}. Google Maps will calculate road distance and estimated travel time.`});
+function openRoute(){const origin=select.value;if(!origin){alert('Please choose a starting place.');return}const mode=document.getElementById('travelMode').value;const url='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(origin)+'&destination='+encodeURIComponent(hotelDestination)+'&travelmode='+encodeURIComponent(mode);window.open(url,'_blank','noopener')}
+function showHotelMap(){const q=encodeURIComponent(hotelDestination);document.getElementById('mapArea').innerHTML=`<iframe class="map-frame" loading="lazy" title="Hotel map" src="https://maps.google.com/maps?q=${q}&output=embed"></iframe>`}
+function nearby(type){window.open('https://www.google.com/maps/search/'+encodeURIComponent(type+' near '+hotelDestination),'_blank','noopener')}
+select.dispatchEvent(new Event('change'));showHotelMap();
+</script></body></html>
